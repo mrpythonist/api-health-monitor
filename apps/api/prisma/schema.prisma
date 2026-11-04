@@ -1,0 +1,68 @@
+// API Health Monitoring & Incident Tracker — data model.
+//
+// Monitor 1—N CheckResult: every periodic (or manual) health check is stored
+// with its outcome, HTTP status, response time and error message.
+// Monitor 1—N Incident: an incident opens after N consecutive failed checks
+// (INCIDENT_THRESHOLD) and resolves on the first successful check after that,
+// or manually via the API. Historical incidents are kept forever; raw check
+// results are pruned after 90 days by the worker.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Monitor {
+  id                 String        @id @default(cuid())
+  name               String
+  slug               String        @unique // public status page: /status/:slug
+  url                String
+  method             String        @default("GET")
+  expectedStatus     Int           @default(200)
+  timeoutMs          Int           @default(10000)
+  intervalSeconds    Int           @default(60)
+  headers            Json?
+  incidentWebhookUrl String?
+  enabled            Boolean       @default(true)
+  consecutiveFails   Int           @default(0)
+  lastStatus         String? // "up" | "down" | null (never checked)
+  lastCheckedAt      DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  checks             CheckResult[]
+  incidents          Incident[]
+
+  @@index([enabled])
+}
+
+model CheckResult {
+  id             String   @id @default(cuid())
+  monitorId      String
+  status         String // "up" | "down"
+  statusCode     Int?
+  responseTimeMs Int?
+  error          String?  @db.VarChar(500)
+  checkedAt      DateTime @default(now())
+  monitor        Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  @@index([monitorId, checkedAt(sort: Desc)])
+}
+
+model Incident {
+  id           String    @id @default(cuid())
+  monitorId    String
+  status       String    @default("open") // "open" | "resolved"
+  cause        String?   @db.VarChar(500)
+  failedChecks Int       @default(1)
+  startedAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+  resolvedBy   String? // "worker" | "manual"
+  monitor      Monitor   @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  @@index([monitorId, startedAt(sort: Desc)])
+  @@index([status])
+}

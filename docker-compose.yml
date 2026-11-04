@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+POSTGRES_PASSWORD: <redacted>
+      POSTGRES_DB: apihealth
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Required: BullMQ (the health-check queue) needs Redis. The API also uses it
+  # as an optional 30s cache for public status pages.
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  demo-target:
+    build: ./apps/demo-target
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+
+  api:
+    build: ./apps/api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - demo-target
+    environment:
+DATABASE_URL: postgresql://postgres:postgres@postgres:5432/apihealth?schema=<redacted>
+      REDIS_URL: redis://redis:6379
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-change-me-to-a-long-random-string}
+      INCIDENT_THRESHOLD: ${INCIDENT_THRESHOLD:-2}
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    # The api Dockerfile runs `prisma migrate deploy` on start, then the server.
+    # Seed the demo monitors once with:
+    #   docker compose run --rm -e DEMO_TARGET_URL=http://demo-target:4000 api npm run seed
+
+  worker:
+    build: ./apps/worker
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - api
+    environment:
+DATABASE_URL: postgresql://postgres:postgres@postgres:5432/apihealth?schema=<redacted>
+      REDIS_URL: redis://redis:6379
+      INCIDENT_THRESHOLD: ${INCIDENT_THRESHOLD:-2}
+    # The api Dockerfile runs `prisma migrate deploy` on start, then the server.
+    # Seed the demo monitors once with:
+    #   docker compose run --rm -e DEMO_TARGET_URL=http://demo-target:4000 api npm run seed
+
+  web:
+    build: ./apps/web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_URL: http://api:3001
+      API_KEY: ${API_KEY:-change-me-to-a-long-random-string}
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
