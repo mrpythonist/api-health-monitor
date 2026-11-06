@@ -1,0 +1,24 @@
+
+> @api-health-monitor/api@1.0.0 test
+> tsx src/test/uptime.test.ts
+
+ok   uptime: empty -> null
+ok   uptime: all up -> 100
+ok   uptime: all down -> 0
+ok   uptime: 3 of 4 -> 75
+ok   uptime: rounds to 2 decimals
+ok   percentile: empty -> null
+ok   percentile: single value
+ok   percentile: p50 of 1..5 -> 3
+ok   percentile: p0 -> min
+ok   percentile: p100 -> max
+ok   percentile: interpolates
+ok   average: empty -> null
+ok   average: simple
+ok   average: rounds to 1 decimal
+ok   slug: starts with kebab name
+ok   slug: unique suffixes
+ok   slug: strips special chars
+ok   slug: empty name fallback
+
+all checks passed
