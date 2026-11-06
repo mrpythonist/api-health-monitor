@@ -1,0 +1,24 @@
+$ cd apps/api
+$ DATABASE_URL='postgresql://postgres:postgres@localhost:5432/apihealth' REDIS_URL='redis://localhost:6379' ADMIN_API_KEY='test-key' node dist/index.js
+[cache] redis error:
+[cache] Redis unreachable - running without cache: Connection is closed.
+[scheduler] redis error:
+[api] listening on :3001
+
+$ curl -s http://localhost:3001/health
+(no response within 60 seconds; the request was still pending when the
+check was stopped)
+
+What this shows, run on 2026-11-06 on a VM with no PostgreSQL and no Redis:
+- The API process starts and listens on :3001 even with both backing
+  services unreachable. The cache layer warns once and falls back to
+  uncached reads; the scheduler warns once and skips scheduling.
+- GET /health did not answer within 60 seconds in this environment.
+  /health calls queueHealth(), which waits on BullMQ/Redis readiness,
+  so with Redis down the request blocks instead of returning
+  {"ok": true, "queue": false}. Treat /health as a liveness check only
+  when Redis is up. This is observed behaviour, not a documented
+  feature, and it is listed as a known limitation in the README.
+- No other endpoint was exercised in this run because /api/* needs
+  PostgreSQL and /status needs it too. The full stack needs Docker
+  Compose with PostgreSQL and Redis running.
