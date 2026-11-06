@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a problem with the API, worker, dashboard, or demo target
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in as much as you can.
+        Never paste a real API key, database password, or webhook URL
+        that contains a token.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+      placeholder: The worker opened an incident even though the endpoint returned 200.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the problem.
+      placeholder: |
+        1. Register a monitor for http://localhost:4000/ok with interval 30.
+        2. Wait two minutes.
+        3. Open the monitor detail page.
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Monitor configuration (if relevant)
+      description: The monitor settings involved, with secrets removed.
+      placeholder: |
+        URL: http://localhost:4000/ok
+        Method: GET, expected status: 200, timeout: 10000, interval: 30
+        Incident webhook URL: (none)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Paste the relevant log lines or error output.
+      render: shell
+      placeholder: |
+        [worker] INCIDENT OPENED: ...
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: How you run the project.
+      placeholder: |
+        OS: Ubuntu 22.04
+        Node: 24.x
+        Setup: docker compose up --build
+        Commit: e830e09
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues for the same problem.
+          required: true
+        - label: I removed all secrets from this report.
+          required: true
