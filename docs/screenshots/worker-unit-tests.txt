@@ -1,0 +1,15 @@
+
+> @api-health-monitor/worker@1.0.0 test
+> tsx src/test/incidents.test.ts
+
+ok   1st failure below threshold -> none
+ok   2nd failure hits threshold -> open
+ok   failure while open -> count
+ok   success, no incident -> none
+ok   success with open incident -> resolve
+ok   recovery resets counter
+ok   failure after recovery -> none (streak restarted)
+ok   threshold 1 -> immediate open
+ok   threshold 0 clamps to 1
+
+all checks passed
