@@ -1,0 +1,25 @@
+$ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/apihealth npx prisma validate (apps/api)
+Prisma schema loaded from prisma/schema.prisma
+The schema at prisma/schema.prisma is valid 🚀
+┌─────────────────────────────────────────────────────────┐
+│  Update available 5.22.0 -> 8.0.0-rc.30                 │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+EXIT:0
+
+$ DATABASE_URL=... npx prisma validate (apps/worker)
+/bin/bash: line 1: cd: ../worker: No such file or directory
+EXIT:1
+$ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/apihealth npx prisma validate (apps/worker)
+Prisma schema loaded from prisma/schema.prisma
+The schema at prisma/schema.prisma is valid 🚀
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  This is a major update - please follow the guide at    │
+EXIT:0
